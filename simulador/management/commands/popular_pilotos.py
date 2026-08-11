@@ -4,7 +4,7 @@ from simulador.models import Piloto
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
-        url = "https://api.jolpi.ca/ergast/f1/current/drivers.json"
+        url = "https://api.jolpi.ca/ergast/f1/drivers.json?limit=1000"
         self.stdout.write("Conectando à API do jolpica...")
 
         resposta = requests.get(url)
