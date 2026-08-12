@@ -1,0 +1,31 @@
+<!-- simulador/templates/simulador/base.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>F1 Python Manager</title>
+    <!-- Aqui você pode colocar um CSS para deixar com cara de jogo escuro/tecnológico -->
+</head>
+<body style="display: flex; height: 100vh; margin: 0; background-color: #1e1e1e; color: white;">
+
+    <!-- MENU LATERAL FIXO -->
+    <nav style="width: 250px; background-color: #2d2d2d; padding: 20px;">
+        <h2>Equipe F1</h2>
+        <p>Orçamento: $ {{ saldo }}</p>
+        <hr>
+        <ul>
+            <li><a href="{% url 'painel_geral' %}" style="color: white;">Visão Geral</a></li>
+            <li><a href="{% url 'garagem' %}" style="color: white;">Garagem & P&D</a></li>
+            <li><a href="{% url 'mercado_pilotos' %}" style="color: white;">Contratos</a></li>
+        </ul>
+    </nav>
+
+    <!-- TELA PRINCIPAL DINÂMICA -->
+    <main style="flex-grow: 1; padding: 30px;">
+        <!-- É aqui que as outras telas vão injetar o conteúdo delas! -->
+        {% block conteudo %}
+        {% endblock %}
+    </main>
+
+</body>
+</html>

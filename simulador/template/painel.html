@@ -1,0 +1,20 @@
+<!-- simulador/templates/simulador/painel.html -->
+{% extends 'simulador/base.html' %}
+
+{% block conteudo %}
+    <h1>Painel do Chefe de Equipe</h1>
+    
+    <div style="border: 1px solid red; padding: 15px; border-radius: 8px;">
+        <h3>Próxima Corrida: GP de Interlagos</h3>
+        <p>Abrasividade da pista: Alta</p>
+        <p>Chance de Chuva: 60%</p>
+        
+        <!-- Um formulário simples para interagir com o back-end -->
+        <form action="{% url 'simular_corrida' 1 %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" style="background-color: red; color: white; padding: 10px 20px;">
+                IR PARA A CORRIDA
+            </button>
+        </form>
+    </div>
+{% endblock %}
