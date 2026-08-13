@@ -1,6 +1,65 @@
-{% for piloto in pilotos %}
-    <p>Nome: {{ piloto.nome }}</p>
-    <p>Habilidade: {{ piloto.habilidade }}</p>
-    <p>Salário: $ {{ piloto.salario }}</p>
-    <button>Contratar por $ {{ piloto.valor_contratacao }}</button>
-{% endfor %}
+{% extends 'simulador/base.html' %}
+
+{% block conteudo %}
+    <h1 style="margin-top: 0;">Mercado de Pilotos</h1>
+    <p style="color: var(--text-muted);">Negocie contratos e reforce seu grid. Os valores já incluem multas rescisórias.</p>
+    
+    <!-- Grid que coloca os pilotos lado a lado automaticamente -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 30px;">
+        
+        {% for piloto in pilotos %}
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                
+                <!-- PARTE 1: FOTO DO PILOTO (Vem da pasta media) -->
+                <div style="text-align: center; margin-bottom: 10px;">
+                    {% if piloto.imagem_perfil %}
+                        <!-- Se você fez o upload no painel, ele mostra a foto -->
+                        <img src="{{ piloto.imagem_perfil.url }}" alt="{{ piloto.nome }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 2px solid #e10600;">
+                    {% else %}
+                        <!-- Se não tiver foto, mostra um quadrado cinza vazio -->
+                        <div style="width: 100px; height: 100px; background-color: #333; border-radius: 50%; margin: 0 auto;"></div>
+                    {% endif %}
+                </div>
+
+                <h2 style="margin-top: 0; margin-bottom: 5px; text-align: center;">{{ piloto.nome }} {{ piloto.sobrenome }}</h2>
+                
+                <!-- PARTE 2: NACIONALIDADE E BANDEIRA (Vem da pasta static) -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span style="background-color: #333; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem;">
+                        OVR: <strong>{{ piloto.overall }}</strong>
+                    </span>
+                    
+                    <span style="color: var(--text-muted); font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
+                        {{ piloto.nacionalidade }}
+                        <!-- O Django vai procurar o nome exato do país. Ex: "Brazilian.png" -->
+                        <img src="{% static 'simulador/img/'|add:piloto.nacionalidade|add:'.png' %}" alt="Bandeira" width="24">
+                    </span>
+                </div>
+                
+                <hr style="border: 0; height: 1px; background-color: #333; margin-bottom: 15px;">
+                
+                <!-- PARTE 3: OS NOVOS ATRIBUTOS -->
+                <div style="font-size: 0.85rem; color: #ccc; margin-bottom: 15px;">
+                    <p style="margin: 2px 0;">Ritmo de Corrida: <strong>{{ piloto.ritmo_corrida }}</strong></p>
+                    <p style="margin: 2px 0;">Ritmo de Classificação: <strong>{{ piloto.ritmo_classificacao }}</strong></p>
+                    <p style="margin: 2px 0;">Ataque: <strong>{{ piloto.nivel_ataque }}</strong> | Defesa: <strong>{{ piloto.nivel_defesa }}</strong></p>
+                </div>
+                
+                <p style="margin: 5px 0;">Salário Base: $ {{ piloto.salario }}</p>
+                <p style="margin: 5px 0; color: var(--money-green); font-size: 1.1rem; font-weight: bold;">
+                    Passe: $ {{ piloto.valor_contratacao }}
+                </p>
+            </div>
+            
+            <!-- Botão de Comprar -->
+            <form action="{% url 'contratar_piloto' piloto.id %}" method="POST" style="margin-top: 20px;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success" style="width: 100%;">Assinar Contrato</button>
+            </form>
+        </div>
+        {% empty %}
+            <!-- ... -->
+        {% endfor %}
+    </div>
+{% endblock %}

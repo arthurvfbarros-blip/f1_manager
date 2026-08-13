@@ -1,0 +1,18 @@
+{% extends 'simulador/base.html' %}
+
+{% block conteudo %}
+    <h1 style="margin-top: 0;">Garagem & P&D</h1>
+    <p style="color: var(--text-muted);">Acompanhe o desenvolvimento do chassi e o status dos seus pilotos contratados.</p>
+
+    <div class="card" style="margin-top: 30px;">
+        <h3 style="margin-top: 0; color: var(--f1-red);">Pilotos Contratados</h3>
+        <!-- Você precisará passar a variável 'meus_pilotos' da View para cá futuramente -->
+        <p style="color: var(--text-muted);">Nenhum piloto no seu assento ainda. Visite o mercado.</p>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top: 0;">Departamento de Engenharia</h3>
+        <p>As melhorias de arrasto aerodinâmico e peso do chassi estarão disponíveis aqui.</p>
+        <button class="btn" style="background-color: #555; cursor: not-allowed;" disabled>Desbloquear Túnel de Vento (Em Breve)</button>
+    </div>
+{% endblock %}

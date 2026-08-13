@@ -1,28 +1,125 @@
-<!-- simulador/templates/simulador/base.html -->
+{%load static%}
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>F1 Python Manager</title>
-    <!-- Aqui você pode colocar um CSS para deixar com cara de jogo escuro/tecnológico -->
-</head>
-<body style="display: flex; height: 100vh; margin: 0; background-color: #1e1e1e; color: white;">
+    <style>
+        /* Variáveis de cores para facilitar mudanças no futuro */
+        :root {
+            --bg-dark: #121212;
+            --bg-panel: #1e1e1e;
+            --f1-red: #e10600;
+            --text-light: #f4f4f4;
+            --text-muted: #a0a0a0;
+            --money-green: #4caf50;
+        }
 
-    <!-- MENU LATERAL FIXO -->
-    <nav style="width: 250px; background-color: #2d2d2d; padding: 20px;">
-        <h2>Equipe F1</h2>
-        <p>Orçamento: $ {{ saldo }}</p>
-        <hr>
-        <ul>
-            <li><a href="{% url 'painel_geral' %}" style="color: white;">Visão Geral</a></li>
-            <li><a href="{% url 'garagem' %}" style="color: white;">Garagem & P&D</a></li>
-            <li><a href="{% url 'mercado_pilotos' %}" style="color: white;">Contratos</a></li>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Barra Lateral */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-panel);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #333;
+        }
+
+        .sidebar h2 { color: var(--f1-red); margin-top: 0; font-style: italic;}
+        
+        .nav-links { list-style: none; padding: 0; }
+        .nav-links li { margin-bottom: 10px; }
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            display: block;
+            padding: 12px;
+            border-radius: 5px;
+            transition: background 0.2s, border-left 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .nav-links a:hover { 
+            background-color: #2a2a2a; 
+            border-left: 3px solid var(--f1-red);
+        }
+
+        /* Área de Conteúdo Principal */
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        /* Componente de Cartão (Usado em várias telas) */
+        .card {
+            background-color: var(--bg-panel);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            border: 1px solid #2a2a2a;
+        }
+
+        /* Botões Padronizados */
+        .btn {
+            background-color: var(--f1-red);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn:hover { background-color: #b30500; }
+        .btn-success { background-color: var(--money-green); }
+        .btn-success:hover { background-color: #388e3c; }
+    </style>
+</head>
+<body>
+    <img src="{% static 'simulador/img/formula-1-logo.png' %}" alt="Logo F1 Manager" width="100%">
+    <img src="{% static 'simulador/img/bandeira_brasil.png' %}" alt="Bandeira do Brasil" width="30">
+    <!-- Menu Lateral Fixo -->
+    <nav class="sidebar">
+        <h2>F1 Manager</h2>
+        
+        <div class="card" style="padding: 15px; margin-bottom: 30px;">
+            <small style="color: var(--text-muted);">Saldo da Equipe</small>
+            <div style="font-size: 1.4rem; color: var(--money-green); font-weight: bold;">
+                $ {{ saldo|default:"0,00" }}
+            </div>
+        </div>
+
+        <ul class="nav-links">
+            <li><a href="{% url 'painel_geral' %}">🏁 Sede da Equipe</a></li>
+            <li><a href="{% url 'garagem' %}">🔧 Garagem e P&D</a></li>
+            <li><a href="{% url 'mercado_pilotos' %}">🤝 Mercado de Pilotos</a></li>
         </ul>
     </nav>
 
-    <!-- TELA PRINCIPAL DINÂMICA -->
-    <main style="flex-grow: 1; padding: 30px;">
-        <!-- É aqui que as outras telas vão injetar o conteúdo delas! -->
+    <!-- Onde as outras telas serão renderizadas -->
+    <main class="main-content">
+        <!-- ÁREA PARA MENSAGENS DE ERRO/SUCESSO (COMPRA DE PILOTOS) -->
+        {% if messages %}
+            {% for message in messages %}
+                <div style="padding: 15px; margin-bottom: 20px; border-radius: 4px; 
+                            background-color: {% if message.tags == 'error' %}#ff5252{% else %}#4caf50{% endif %};">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
         {% block conteudo %}
         {% endblock %}
     </main>

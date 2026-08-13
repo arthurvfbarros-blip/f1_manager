@@ -24,6 +24,7 @@ class Equipe(models.Model):
     orcamento = models.DecimalField(max_digits=15, decimal_places=2, default=100000000.00) # $ 100 Milhões iniciais
     motor = models.ForeignKey(FornecedorMotor, on_delete=models.SET_NULL, null=True, blank=True)
     patrocinadores = models.ManyToManyField(Patrocinador, blank=True)
+    controlada_pelo_jogador = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nome
@@ -65,3 +66,13 @@ class Pista(models.Model):
 
     def __str__(self):
         return f"{self.nome} - {self.pais}"
+
+
+class Carro(models.Model):
+    # O OneToOneField amarra 1 carro para 1 equipe (se a equipe for deletada, o carro some)
+    equipe = models.OneToOneField(Equipe, on_delete=models.CASCADE)
+    aerodinamica = models.IntegerField(default=40)
+    chassi_peso = models.IntegerField(default=40)
+    
+    def __str__(self):
+        return f"Carro da {self.equipe.nome}"
