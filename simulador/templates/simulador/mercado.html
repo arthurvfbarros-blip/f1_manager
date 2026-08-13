@@ -1,0 +1,6 @@
+{% for piloto in pilotos %}
+    <p>Nome: {{ piloto.nome }}</p>
+    <p>Habilidade: {{ piloto.habilidade }}</p>
+    <p>Salário: $ {{ piloto.salario }}</p>
+    <button>Contratar por $ {{ piloto.valor_contratacao }}</button>
+{% endfor %}
