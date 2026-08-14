@@ -1,9 +1,12 @@
 import random
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
 from .models import Equipe, Piloto, Pista
 
 def painel_geral(request):
-    minha_equipe = Equipe.objects.get(id=1)
+    minha_equipe = Equipe.objects.filter(controlada_pelo_jogador=True).first()
+    if not minha_equipe:
+        return redirect('novo_jogo')
 
     contexto = {
         'equipe': minha_equipe,
@@ -12,12 +15,16 @@ def painel_geral(request):
     return render(request, 'simulador/painel.html', contexto)
 
 def garagem(request):
-    minha_equipe = Equipe.objects.get(id=1)
+    minha_equipe = Equipe.objects.filter(controlada_pelo_jogador=True).first()
+    if not minha_equipe:
+        return redirect('novo_jogo')
     return render(request, 'simulador/garagem.html', {'equipe': minha_equipe})
 
 
 def mercado_pilotos(request):
-    minha_equipe = Equipe.objects.get(id=1)
+    minha_equipe = Equipe.objects.filter(controlada_pelo_jogador=True).first()
+    if not minha_equipe:
+        return redirect('novo_jogo')
     pilotos = Piloto.objects.all()
 
     contexto = {
@@ -32,7 +39,9 @@ def mercado_pilotos(request):
 def simular_corrida(request, id_pista):
     # 1. Puxamos a pista clicada e a equipe do jogador
     pista = get_object_or_404(Pista, id=id_pista)
-    minha_equipe = Equipe.objects.get(id=1)
+    minha_equipe = Equipe.objects.filter(controlada_pelo_jogador=True).first()
+    if not minha_equipe:
+        return redirect('novo_jogo')
     
     # Pegamos o primeiro piloto da equipe para a simulação (você pode melhorar isso depois)
     meu_piloto = Piloto.objects.filter(equipe_atual=minha_equipe).first()
@@ -104,3 +113,75 @@ def simular_corrida(request, id_pista):
     }
     
     return render(request, 'simulador/resultado_corrida.html', contexto)
+
+
+def novo_jogo(request):
+    if request.method == 'POST':
+        # Lógica para quando o jogador clica em "Assumir Equipe"
+        equipe_id = request.POST.get('equipe_id')
+        equipe_escolhida = Equipe.objects.get(id=equipe_id)
+        
+        # Limpa o controle de qualquer outra equipe e assume a nova
+        Equipe.objects.all().update(controlada_pelo_jogador=False)
+        equipe_escolhida.controlada_pelo_jogador = True
+        equipe_escolhida.save()
+        
+        return redirect('painel_geral')
+
+    # Se for GET, apenas exibe a tela organizada
+    contexto = {
+        'equipes_atuais': Equipe.objects.filter(categoria='ATUAL'),
+        'equipes_classicas': Equipe.objects.filter(categoria='CLASSICA'),
+    }
+    return render(request, 'simulador/novo_jogo.html', contexto)
+
+
+def processar_mercado_ia():
+    equipes_ia = Equipe.objects.filter(controlada_pelo_jogador=False)
+    
+    for equipe in equipes_ia:
+        pilotos_atuais = Piloto.objects.filter(equipe_atual=equipe)
+        
+        # 1. A equipe só vai ao mercado buscar titular se estiver com vaga sobrando
+        if pilotos_atuais.count() < 2:
+            # ... lógica de contratar o melhor disponível
+            continue
+
+        # 2. A Troca Oportuna (Anti-Camaleão)
+        # A IA só demite um piloto se o substituto disponível for pelo menos 5 pontos MELHOR em Overall
+        melhor_agente_livre = Piloto.objects.filter(equipe_atual__isnull=True).order_by('-habilidade').first()
+        
+        if melhor_agente_livre:
+            for piloto in pilotos_atuais:
+                # TRAVA 1: O piloto atual tem que estar indo mal (Ex: Overall menor que 80)
+                # TRAVA 2: O agente livre tem que ser BEM melhor (Margem de +5)
+                # TRAVA 3: A equipe tem que ter o dobro do dinheiro do passe (Não gasta tudo de uma vez)
+                
+                if piloto.overall < 80 and (melhor_agente_livre.overall >= piloto.overall + 5):
+                    if equipe.orcamento >= (melhor_agente_livre.valor_contratacao * 2):
+                        
+                        # Efetua a troca cirúrgica
+                        equipe.orcamento -= melhor_agente_livre.valor_contratacao
+                        equipe.save()
+                        
+                        # Demite o antigo e assina com o novo
+                        piloto.equipe_atual = None
+                        piloto.save()
+                        
+                        melhor_agente_livre.equipe_atual = equipe
+                        melhor_agente_livre.save()
+                        break # Para não trocar os dois pilotos de uma vez
+
+
+def avancar_tempo(request):
+    # Aqui vamos processar tudo que acontece na passagem do tempo
+    
+    # 1º A IA faz as trocas dela se precisar
+    processar_mercado_ia() 
+    
+    # 2º Pagamos os salários? (Você pode adicionar isso depois)
+    
+    messages.success(request, "Uma semana se passou. O mercado e as equipes se movimentaram.")
+    
+    # Recarrega o painel geral para ver se algo mudou
+    return redirect('painel_geral')

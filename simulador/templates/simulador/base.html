@@ -88,8 +88,7 @@
     </style>
 </head>
 <body>
-    <img src="{% static 'simulador/img/formula-1-logo.png' %}" alt="Logo F1 Manager" width="100%">
-    <img src="{% static 'simulador/img/bandeira_brasil.png' %}" alt="Bandeira do Brasil" width="30">
+
     <!-- Menu Lateral Fixo -->
     <nav class="sidebar">
         <h2>F1 Manager</h2>
@@ -109,7 +108,11 @@
     </nav>
 
     <!-- Onde as outras telas serão renderizadas -->
-    <main class="main-content">
+    <main class="main-content" style="position: relative;">
+        <div style="position: absolute; top: 40px; right: 40px; display: flex; flex-direction: column; align-items: flex-end; z-index: 1000;">
+            <img src="{% static 'simulador/img/formula-1-logo.png' %}" alt="Logo F1 Manager" width="200">
+            <img src="{% static 'simulador/img/bandeira_brasil.jpg' %}" alt="Bandeira do Brasil" width="30" style="margin-top: -5px; border-radius: 2px;">
+        </div>
         <!-- ÁREA PARA MENSAGENS DE ERRO/SUCESSO (COMPRA DE PILOTOS) -->
         {% if messages %}
             {% for message in messages %}

@@ -1,0 +1,41 @@
+{% extends 'simulador/base.html' %}
+
+{% block conteudo %}
+    <h1>Novo Jogo: Escolha sua Scuderia</h1>
+    <p style="color: var(--text-muted);">Assuma o controle de uma equipe existente ou crie uma do zero.</p>
+
+    <div class="card" style="margin-bottom: 30px;">
+        <h3>Criar Nova Equipe</h3>
+        <p>Comece com 100 milhões, sem motor e sem pilotos.</p>
+        <button class="btn btn-success">Construir Scuderia do Zero</button>
+    </div>
+
+    <h2 style="color: var(--f1-red);">Grid Atual</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+        {% for equipe in equipes_atuais %}
+            <div class="card" style="text-align: center;">
+                <h4>{{ equipe.nome }}</h4>
+                <form action="{% url 'novo_jogo' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="equipe_id" value="{{ equipe.id }}">
+                    <button type="submit" class="btn" style="width: 100%;">Assumir</button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+
+    <h2 style="color: var(--f1-red); margin-top: 40px;">Equipes Clássicas</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+        {% for equipe in equipes_classicas %}
+            <!-- Mesmo card do loop acima -->
+            <div class="card" style="text-align: center;">
+                <h4>{{ equipe.nome }}</h4>
+                <form action="{% url 'novo_jogo' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="equipe_id" value="{{ equipe.id }}">
+                    <button type="submit" class="btn" style="width: 100%;">Assumir</button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
