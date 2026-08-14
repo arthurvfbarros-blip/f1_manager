@@ -1,0 +1,75 @@
+{% extends 'simulador/base.html' %}
+
+{% block conteudo %}
+    <h1 style="margin-top: 0;">Setup da Equipe: {{ equipe.nome }}</h1>
+    <p style="color: var(--text-muted);">Prepare seu motor, pilotos e o chassi antes de ir para as pistas.</p>
+
+    <div class="card" style="margin-top: 30px;">
+        <h3 style="margin-top: 0; color: var(--f1-red);">1. Motor</h3>
+        <p><strong>Motor atual:</strong> {{ equipe.motor.nome|default:"Nenhum Motor" }}</p>
+        <form method="POST" style="display: flex; gap: 10px; align-items: center;">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="comprar_motor">
+            <select name="motor_id" style="padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555;">
+                <option value="">Selecione um motor...</option>
+                {% for motor in motores %}
+                    <option value="{{ motor.id }}">{{ motor.nome }} - ${{ motor.preco }} (Pot: {{ motor.potencia }}, Conf: {{ motor.confiabilidade }})</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn">Comprar/Trocar Motor</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top: 0; color: var(--f1-red);">2. Pilotos</h3>
+        {% if meus_pilotos %}
+            <ul style="list-style: none; padding: 0;">
+            {% for piloto in meus_pilotos %}
+                <li style="display: flex; justify-content: space-between; padding: 10px; background: #222; margin-bottom: 5px; border-radius: 4px;">
+                    <span>{{ piloto.nome }} {{ piloto.sobrenome }} (OVR: {{ piloto.overall }})</span>
+                    <form method="POST" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="acao" value="demitir_piloto">
+                        <input type="hidden" name="piloto_id" value="{{ piloto.id }}">
+                        <button type="submit" class="btn" style="background-color: #555; padding: 5px 10px;">Demitir</button>
+                    </form>
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Nenhum piloto contratado. Acesse o mercado de pilotos para fechar seus contratos!</p>
+        {% endif %}
+        <a href="{% url 'mercado_pilotos' %}" class="btn btn-success" style="display: inline-block; text-decoration: none; margin-top: 10px;">Ir para Mercado de Pilotos</a>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top: 0; color: var(--f1-red);">3. Upgrades do Carro</h3>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1; background: #222; padding: 15px; border-radius: 4px;">
+                <h4>Aerodinâmica (Lvl: {{ carro.aerodinamica }})</h4>
+                <p style="font-size: 0.9em; color: var(--text-muted);">Melhora a velocidade nas curvas e estabilidade.</p>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="acao" value="upgrade_aero">
+                    <button type="submit" class="btn" style="width: 100%;">Melhorar ($1.000.000)</button>
+                </form>
+            </div>
+            
+            <div style="flex: 1; background: #222; padding: 15px; border-radius: 4px;">
+                <h4>Chassi (Lvl: {{ carro.chassi_peso }})</h4>
+                <p style="font-size: 0.9em; color: var(--text-muted);">Reduz o peso, melhorando aceleração.</p>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="acao" value="upgrade_chassi">
+                    <button type="submit" class="btn" style="width: 100%;">Melhorar ($1.000.000)</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" style="margin-top: 30px; text-align: right;">
+        {% csrf_token %}
+        <input type="hidden" name="acao" value="finalizar_setup">
+        <button type="submit" class="btn" style="background-color: var(--money-green); font-size: 1.2rem; padding: 15px 30px;">Pronto para a Temporada 🏁</button>
+    </form>
+{% endblock %}

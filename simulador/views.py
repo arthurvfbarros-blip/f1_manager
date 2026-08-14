@@ -1,16 +1,23 @@
 import random
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from .models import Equipe, Piloto, Pista
+from .models import Equipe, Piloto, Pista, FornecedorMotor, Carro, Temporada, EtapaCalendario
 
 def painel_geral(request):
     minha_equipe = Equipe.objects.filter(controlada_pelo_jogador=True).first()
     if not minha_equipe:
         return redirect('novo_jogo')
 
+    temporada = Temporada.objects.first()
+    proxima_etapa = None
+    if temporada:
+        proxima_etapa = EtapaCalendario.objects.filter(temporada=temporada, ordem=temporada.etapa_atual).first()
+
     contexto = {
         'equipe': minha_equipe,
-        'saldo': minha_equipe.orcamento
+        'saldo': minha_equipe.orcamento,
+        'temporada': temporada,
+        'proxima_etapa': proxima_etapa
     }
     return render(request, 'simulador/painel.html', contexto)
 
@@ -18,7 +25,38 @@ def garagem(request):
     minha_equipe = Equipe.objects.filter(controlada_pelo_jogador=True).first()
     if not minha_equipe:
         return redirect('novo_jogo')
-    return render(request, 'simulador/garagem.html', {'equipe': minha_equipe})
+        
+    if request.method == 'POST':
+        acao = request.POST.get('acao')
+        if acao == 'treinar_piloto':
+            piloto_id = request.POST.get('piloto_id')
+            atributo = request.POST.get('atributo')
+            custo = 500000
+            
+            if minha_equipe.orcamento >= custo:
+                piloto = get_object_or_404(Piloto, id=piloto_id, equipe_atual=minha_equipe)
+                if atributo == 'ritmo_corrida' and piloto.ritmo_corrida < 99:
+                    piloto.ritmo_corrida += 1
+                elif atributo == 'ritmo_classificacao' and piloto.ritmo_classificacao < 99:
+                    piloto.ritmo_classificacao += 1
+                elif atributo == 'nivel_ataque' and piloto.nivel_ataque < 99:
+                    piloto.nivel_ataque += 1
+                elif atributo == 'nivel_defesa' and piloto.nivel_defesa < 99:
+                    piloto.nivel_defesa += 1
+                else:
+                    messages.error(request, "Atributo inválido ou no nível máximo.")
+                    return redirect('garagem')
+                    
+                piloto.save()
+                minha_equipe.orcamento -= custo
+                minha_equipe.save()
+                messages.success(request, f"Treinamento de {atributo} concluído para {piloto.nome}!")
+            else:
+                messages.error(request, "Orçamento insuficiente para treinar.")
+        return redirect('garagem')
+
+    meus_pilotos = Piloto.objects.filter(equipe_atual=minha_equipe)
+    return render(request, 'simulador/garagem.html', {'equipe': minha_equipe, 'meus_pilotos': meus_pilotos, 'saldo': minha_equipe.orcamento})
 
 
 def mercado_pilotos(request):
@@ -103,6 +141,14 @@ def simular_corrida(request, id_pista):
             minha_equipe.save()
             relatorio_corrida.append(f"Patrocinadores pagaram $ {pagamento} na sua conta!")
 
+    # 5. Avançar a temporada e mercado IA
+    temporada = Temporada.objects.first()
+    if temporada:
+        temporada.etapa_atual += 1
+        temporada.save()
+        
+    processar_mercado_ia()
+
     # Empacotamos os resultados e mandamos para o HTML
     contexto = {
         'pista': pista,
@@ -126,7 +172,7 @@ def novo_jogo(request):
         equipe_escolhida.controlada_pelo_jogador = True
         equipe_escolhida.save()
         
-        return redirect('painel_geral')
+        return redirect('setup_equipe')
 
     # Se for GET, apenas exibe a tela organizada
     contexto = {
@@ -185,3 +231,240 @@ def avancar_tempo(request):
     
     # Recarrega o painel geral para ver se algo mudou
     return redirect('painel_geral')
+
+def setup_equipe(request):
+    minha_equipe = Equipe.objects.filter(controlada_pelo_jogador=True).first()
+    if not minha_equipe:
+        return redirect('novo_jogo')
+        
+    carro, _ = Carro.objects.get_or_create(equipe=minha_equipe)
+    
+    if request.method == 'POST':
+        acao = request.POST.get('acao')
+        if acao == 'comprar_motor':
+            motor_id = request.POST.get('motor_id')
+            if motor_id:
+                motor = get_object_or_404(FornecedorMotor, id=motor_id)
+                if minha_equipe.orcamento >= motor.preco:
+                    minha_equipe.orcamento -= motor.preco
+                    minha_equipe.motor = motor
+                    minha_equipe.save()
+                    messages.success(request, f"Motor {motor.nome} adquirido por ${motor.preco}!")
+                else:
+                    messages.error(request, "Orçamento insuficiente para esse motor.")
+                    
+        elif acao == 'upgrade_aero':
+            custo = 1000000
+            if minha_equipe.orcamento >= custo and carro.aerodinamica < 100:
+                minha_equipe.orcamento -= custo
+                carro.aerodinamica += 5
+                minha_equipe.save()
+                carro.save()
+                messages.success(request, "Aerodinâmica melhorada com sucesso!")
+            else:
+                messages.error(request, "Orçamento insuficiente ou nível máximo atingido.")
+                
+        elif acao == 'upgrade_chassi':
+            custo = 1000000
+            if minha_equipe.orcamento >= custo and carro.chassi_peso < 100:
+                minha_equipe.orcamento -= custo
+                carro.chassi_peso += 5
+                minha_equipe.save()
+                carro.save()
+                messages.success(request, "Chassi melhorado com sucesso!")
+            else:
+                messages.error(request, "Orçamento insuficiente ou nível máximo atingido.")
+                
+        elif acao == 'demitir_piloto':
+            piloto_id = request.POST.get('piloto_id')
+            piloto = get_object_or_404(Piloto, id=piloto_id)
+            piloto.equipe_atual = None
+            piloto.save()
+            messages.success(request, f"Piloto {piloto.nome} demitido!")
+            
+        elif acao == 'finalizar_setup':
+            return redirect('painel_geral')
+            
+        return redirect('setup_equipe')
+
+    contexto = {
+        'equipe': minha_equipe,
+        'saldo': minha_equipe.orcamento,
+        'carro': carro,
+        'motores': FornecedorMotor.objects.all(),
+        'meus_pilotos': Piloto.objects.filter(equipe_atual=minha_equipe),
+    }
+    return render(request, 'simulador/setup_equipe.html', contexto)
+
+def fim_de_semana_hub(request, id_pista):
+    pista = get_object_or_404(Pista, id=id_pista)
+    minha_equipe = Equipe.objects.filter(controlada_pelo_jogador=True).first()
+    
+    session_key = f'weekend_{id_pista}'
+    if session_key not in request.session:
+        # Determine if it's a sprint weekend
+        is_sprint = pista.pais in ['Brasil', 'Áustria', 'Catar', 'Estados Unidos', 'China']
+        
+        request.session[session_key] = {
+            'is_sprint': is_sprint,
+            'tl1_done': False,
+            'tl2_done': False,
+            'tl3_done': False if not is_sprint else True, # If sprint, skip TL3
+            'sprint_quali_done': False if is_sprint else True,
+            'sprint_done': False if is_sprint else True,
+            'quali_done': False,
+            'corrida_done': False,
+        }
+        request.session.modified = True
+        
+    estado = request.session[session_key]
+    
+    contexto = {
+        'pista': pista,
+        'estado': estado,
+        'equipe': minha_equipe,
+    }
+    return render(request, 'simulador/fim_de_semana.html', contexto)
+
+def sessao_simulacao(request, id_pista, tipo_sessao):
+    pista = get_object_or_404(Pista, id=id_pista)
+    minha_equipe = Equipe.objects.filter(controlada_pelo_jogador=True).first()
+    
+    session_key = f'weekend_{id_pista}'
+    if session_key not in request.session:
+        return redirect('fim_de_semana_hub', id_pista=id_pista)
+        
+    estado = request.session[session_key]
+    
+    # Para sessões de treinos e classificação
+    if tipo_sessao != 'corrida' and tipo_sessao != 'sprint':
+        estado[tipo_sessao + '_done'] = True
+        request.session.modified = True
+        
+        pilotos = Piloto.objects.filter(equipe_atual__isnull=False)
+        resultados = []
+        base_time = 80.0 + random.uniform(0, 2)
+        for p in pilotos:
+            t = base_time + (100 - p.overall) * 0.1 + random.uniform(-0.5, 0.5)
+            resultados.append({'piloto': p, 'tempo': t})
+            
+        resultados = sorted(resultados, key=lambda x: x['tempo'])
+        
+        contexto = {
+            'pista': pista,
+            'tipo_sessao': tipo_sessao,
+            'resultados': resultados,
+        }
+        return render(request, 'simulador/sessao_resultado.html', contexto)
+        
+    # Para CORRIDA principal ou sprint
+    race_key = f'race_{id_pista}_{tipo_sessao}'
+    total_voltas = pista.quantidade_voltas if tipo_sessao == 'corrida' else pista.quantidade_voltas // 3
+    
+    if race_key not in request.session:
+        pilotos = Piloto.objects.filter(equipe_atual__isnull=False)
+        race_state = {
+            'volta_atual': 0,
+            'total_voltas': total_voltas,
+            'pilotos': [],
+            'log': []
+        }
+        for p in pilotos:
+            race_state['pilotos'].append({
+                'id': p.id,
+                'nome': f"{p.nome} {p.sobrenome}",
+                'overall': p.overall,
+                'equipe': p.equipe_atual.nome if p.equipe_atual else 'Sem Equipe',
+                'is_player': p.equipe_atual == minha_equipe,
+                'tempo_total': 0.0,
+                'desgaste_pneu': 0.0,
+                'pitstops': 0,
+                'status': 'Na Pista'
+            })
+        request.session[race_key] = race_state
+        request.session.modified = True
+    
+    race_state = request.session[race_key]
+    
+    if request.method == 'POST':
+        acao = request.POST.get('acao')
+        voltas_a_avancar = 1
+        
+        if acao == 'avancar_5':
+            voltas_a_avancar = 5
+        elif acao == 'avancar_todas':
+            voltas_a_avancar = race_state['total_voltas'] - race_state['volta_atual']
+        elif acao == 'box':
+            piloto_box_id = int(request.POST.get('piloto_id'))
+            for rp in race_state['pilotos']:
+                if rp['id'] == piloto_box_id and rp['status'] == 'Na Pista':
+                    rp['desgaste_pneu'] = 0.0
+                    rp['tempo_total'] += 22.0
+                    rp['pitstops'] += 1
+                    race_state['log'].insert(0, f"Volta {race_state['volta_atual']}: {rp['nome']} fez um Pit Stop (22s).")
+        
+        if acao in ['avancar', 'avancar_5', 'avancar_todas']:
+            for v in range(voltas_a_avancar):
+                if race_state['volta_atual'] >= race_state['total_voltas']:
+                    break
+                    
+                race_state['volta_atual'] += 1
+                
+                for rp in race_state['pilotos']:
+                    if rp['status'] != 'Na Pista':
+                        continue
+                        
+                    base_lap = 85.0
+                    lap_time = base_lap + (100 - rp['overall']) * 0.05 + (rp['desgaste_pneu'] / 100.0) * 3.0 + random.uniform(-0.5, 0.5)
+                    rp['tempo_total'] += lap_time
+                    rp['desgaste_pneu'] += pista.desgaste_pneus * 1.5
+                    
+                    if not rp['is_player'] and rp['desgaste_pneu'] > 85.0:
+                        rp['desgaste_pneu'] = 0.0
+                        rp['tempo_total'] += 22.0
+                        rp['pitstops'] += 1
+                        race_state['log'].insert(0, f"Volta {race_state['volta_atual']}: {rp['nome']} fez Pit Stop.")
+                        
+                    chance_quebra = random.randint(1, 1500)
+                    if chance_quebra <= 2:
+                        rp['status'] = "ABANDONO"
+                        race_state['log'].insert(0, f"Volta {race_state['volta_atual']}: PROBLEMA COM {rp['nome']}! Abandono.")
+                        
+            # Ordenar por tempo
+            race_state['pilotos'] = sorted(race_state['pilotos'], key=lambda x: (x['status'] != 'Na Pista', x['tempo_total']))
+            
+            # Checar se finalizou
+            if race_state['volta_atual'] >= race_state['total_voltas']:
+                if tipo_sessao == 'corrida':
+                    estado['corrida_done'] = True
+                    temporada = Temporada.objects.first()
+                    if temporada:
+                        temporada.etapa_atual += 1
+                        temporada.save()
+                    processar_mercado_ia()
+                else:
+                    estado['sprint_done'] = True
+                request.session.modified = True
+                
+        request.session.modified = True
+            
+    # Calcular intervalos na UI
+    for i, rp in enumerate(race_state['pilotos']):
+        if i == 0:
+            rp['intervalo'] = "Líder"
+        elif rp['status'] != 'Na Pista':
+            rp['intervalo'] = "OUT"
+        else:
+            diff = rp['tempo_total'] - race_state['pilotos'][i-1]['tempo_total']
+            rp['intervalo'] = f"+{diff:.3f}s"
+            
+    player_drivers = [p for p in race_state['pilotos'] if p['is_player']]
+    
+    contexto = {
+        'pista': pista,
+        'race_state': race_state,
+        'player_drivers': player_drivers,
+        'is_finished': race_state['volta_atual'] >= race_state['total_voltas'],
+        'tipo_sessao': tipo_sessao
+    }
+    return render(request, 'simulador/corrida_interativa.html', contexto)

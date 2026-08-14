@@ -25,7 +25,7 @@ class Equipe(models.Model):
         ('ORIGINAL', 'Criada pelo Jogador'),)
     
     nome = models.CharField(max_length=100)
-    orcamento = models.DecimalField(max_digits=15, decimal_places=2, default=100000000.00) # $ 100 Milhões iniciais
+    orcamento = models.DecimalField(max_digits=15, decimal_places=2, default=15000000.00) # $ 15 Milhões iniciais
     categoria = models.CharField(max_length=20, choices=CATEGORIAS, default='ATUAL')
     controlada_pelo_jogador = models.BooleanField(default=False)
     motor = models.ForeignKey(FornecedorMotor, on_delete=models.SET_NULL, null=True, blank=True)

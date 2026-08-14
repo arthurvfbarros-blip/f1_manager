@@ -1,18 +1,67 @@
 {% extends 'simulador/base.html' %}
 
 {% block conteudo %}
-    <h1 style="margin-top: 0;">Garagem & P&D</h1>
-    <p style="color: var(--text-muted);">Acompanhe o desenvolvimento do chassi e o status dos seus pilotos contratados.</p>
+    <h1 style="margin-top: 0;">Garagem & Centro de Treinamento</h1>
+    <p style="color: var(--text-muted);">Acompanhe o desenvolvimento do chassi e treine seus pilotos.</p>
 
     <div class="card" style="margin-top: 30px;">
-        <h3 style="margin-top: 0; color: var(--f1-red);">Pilotos Contratados</h3>
-        <!-- Você precisará passar a variável 'meus_pilotos' da View para cá futuramente -->
-        <p style="color: var(--text-muted);">Nenhum piloto no seu assento ainda. Visite o mercado.</p>
+        <h3 style="margin-top: 0; color: var(--f1-red);">Treinamento de Pilotos ($500.000 por Ponto)</h3>
+        {% if meus_pilotos %}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            {% for piloto in meus_pilotos %}
+                <div style="background: #222; padding: 15px; border-radius: 6px; border: 1px solid #333;">
+                    <h4 style="margin-top: 0; border-bottom: 1px solid #444; padding-bottom: 5px;">{{ piloto.nome }} {{ piloto.sobrenome }} (OVR: {{ piloto.overall }})</h4>
+                    
+                    <!-- Treinar Ritmo Corrida -->
+                    <form method="POST" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="acao" value="treinar_piloto">
+                        <input type="hidden" name="piloto_id" value="{{ piloto.id }}">
+                        <input type="hidden" name="atributo" value="ritmo_corrida">
+                        <span>Ritmo Corrida: {{ piloto.ritmo_corrida }}</span>
+                        <button type="submit" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">Treinar</button>
+                    </form>
+
+                    <!-- Treinar Ritmo Quali -->
+                    <form method="POST" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="acao" value="treinar_piloto">
+                        <input type="hidden" name="piloto_id" value="{{ piloto.id }}">
+                        <input type="hidden" name="atributo" value="ritmo_classificacao">
+                        <span>Ritmo Quali: {{ piloto.ritmo_classificacao }}</span>
+                        <button type="submit" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">Treinar</button>
+                    </form>
+
+                    <!-- Treinar Ataque -->
+                    <form method="POST" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="acao" value="treinar_piloto">
+                        <input type="hidden" name="piloto_id" value="{{ piloto.id }}">
+                        <input type="hidden" name="atributo" value="nivel_ataque">
+                        <span>Ataque: {{ piloto.nivel_ataque }}</span>
+                        <button type="submit" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">Treinar</button>
+                    </form>
+
+                    <!-- Treinar Defesa -->
+                    <form method="POST" style="display: flex; justify-content: space-between; align-items: center;">
+                        {% csrf_token %}
+                        <input type="hidden" name="acao" value="treinar_piloto">
+                        <input type="hidden" name="piloto_id" value="{{ piloto.id }}">
+                        <input type="hidden" name="atributo" value="nivel_defesa">
+                        <span>Defesa: {{ piloto.nivel_defesa }}</span>
+                        <button type="submit" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">Treinar</button>
+                    </form>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted);">Nenhum piloto contratado. Visite o mercado.</p>
+        {% endif %}
     </div>
 
     <div class="card">
         <h3 style="margin-top: 0;">Departamento de Engenharia</h3>
-        <p>As melhorias de arrasto aerodinâmico e peso do chassi estarão disponíveis aqui.</p>
-        <button class="btn" style="background-color: #555; cursor: not-allowed;" disabled>Desbloquear Túnel de Vento (Em Breve)</button>
+        <p>As melhorias do carro agora são feitas no Setup da Equipe, na pré-temporada ou nos intervalos das etapas.</p>
+        <a href="{% url 'setup_equipe' %}" class="btn" style="text-decoration: none;">Ir para Setup do Carro</a>
     </div>
 {% endblock %}

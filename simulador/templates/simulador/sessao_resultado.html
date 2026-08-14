@@ -1,0 +1,39 @@
+{% extends 'simulador/base.html' %}
+{% load static %}
+
+{% block conteudo %}
+    <h1 style="margin-top: 0; text-transform: capitalize;">{{ tipo_sessao }} - GP de {{ pista.pais }}</h1>
+    
+    <div class="card" style="margin-top: 30px;">
+        <h3 style="color: var(--f1-red);">Resultados da Sessão</h3>
+        <p>A sessão foi concluída. Abaixo estão os melhores tempos registrados.</p>
+
+        <table style="width: 100%; text-align: left; border-collapse: collapse; margin-top: 20px;">
+            <thead>
+                <tr style="border-bottom: 1px solid #444;">
+                    <th style="padding: 10px;">Posição</th>
+                    <th style="padding: 10px;">Piloto</th>
+                    <th style="padding: 10px;">Equipe</th>
+                    <th style="padding: 10px;">Melhor Tempo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in resultados %}
+                <tr style="border-bottom: 1px solid #2a2a2a; {% if res.piloto.equipe_atual.controlada_pelo_jogador %}background-color: #1a2a1a;{% endif %}">
+                    <td style="padding: 10px;">{{ forloop.counter }}</td>
+                    <td style="padding: 10px; font-weight: {% if res.piloto.equipe_atual.controlada_pelo_jogador %}bold{% else %}normal{% endif %};">
+                        {{ res.piloto.nome }} {{ res.piloto.sobrenome }}
+                    </td>
+                    <td style="padding: 10px;">{{ res.piloto.equipe_atual.nome }}</td>
+                    <td style="padding: 10px;">1:{{ res.tempo|floatformat:3 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="text-align: right; margin-top: 20px;">
+        <a href="{% url 'fim_de_semana_hub' pista.id %}" class="btn" style="background-color: #ff9800;">Voltar ao Fim de Semana</a>
+    </div>
+
+{% endblock %}

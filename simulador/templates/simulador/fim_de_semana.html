@@ -1,0 +1,101 @@
+{% extends 'simulador/base.html' %}
+
+{% block conteudo %}
+    <h1 style="margin-top: 0;">Fim de Semana: GP de {{ pista.pais }}</h1>
+    <p style="color: var(--text-muted);">{{ pista.nome }}</p>
+
+    <div class="card" style="margin-top: 30px;">
+        <h3 style="color: var(--f1-red);">Cronograma da Etapa</h3>
+        <p>Complete as sessões em ordem para progredir no fim de semana.</p>
+        
+        <ul style="list-style: none; padding: 0;">
+            <!-- TL1 -->
+            <li style="padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+                <span>Treino Livre 1</span>
+                {% if not estado.tl1_done %}
+                    <a href="{% url 'sessao_simulacao' pista.id 'tl1' %}" class="btn">Iniciar Sessão</a>
+                {% else %}
+                    <span style="color: var(--money-green);">Concluído ✓</span>
+                {% endif %}
+            </li>
+
+            <!-- TL2 ou Quali Sprint -->
+            {% if estado.is_sprint %}
+                <li style="padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; opacity: {% if not estado.tl1_done %}0.5{% else %}1{% endif %};">
+                    <span>Classificação Sprint</span>
+                    {% if not estado.tl1_done %}
+                        <button class="btn" style="background: #555; cursor: not-allowed;" disabled>Bloqueado</button>
+                    {% elif not estado.sprint_quali_done %}
+                        <a href="{% url 'sessao_simulacao' pista.id 'sprint_quali' %}" class="btn">Iniciar Sessão</a>
+                    {% else %}
+                        <span style="color: var(--money-green);">Concluído ✓</span>
+                    {% endif %}
+                </li>
+                <li style="padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; opacity: {% if not estado.sprint_quali_done %}0.5{% else %}1{% endif %};">
+                    <span>Corrida Sprint</span>
+                    {% if not estado.sprint_quali_done %}
+                        <button class="btn" style="background: #555; cursor: not-allowed;" disabled>Bloqueado</button>
+                    {% elif not estado.sprint_done %}
+                        <a href="{% url 'sessao_simulacao' pista.id 'sprint' %}" class="btn">Iniciar Sessão</a>
+                    {% else %}
+                        <span style="color: var(--money-green);">Concluído ✓</span>
+                    {% endif %}
+                </li>
+            {% else %}
+                <li style="padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; opacity: {% if not estado.tl1_done %}0.5{% else %}1{% endif %};">
+                    <span>Treino Livre 2</span>
+                    {% if not estado.tl1_done %}
+                        <button class="btn" style="background: #555; cursor: not-allowed;" disabled>Bloqueado</button>
+                    {% elif not estado.tl2_done %}
+                        <a href="{% url 'sessao_simulacao' pista.id 'tl2' %}" class="btn">Iniciar Sessão</a>
+                    {% else %}
+                        <span style="color: var(--money-green);">Concluído ✓</span>
+                    {% endif %}
+                </li>
+                <li style="padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; opacity: {% if not estado.tl2_done %}0.5{% else %}1{% endif %};">
+                    <span>Treino Livre 3</span>
+                    {% if not estado.tl2_done %}
+                        <button class="btn" style="background: #555; cursor: not-allowed;" disabled>Bloqueado</button>
+                    {% elif not estado.tl3_done %}
+                        <a href="{% url 'sessao_simulacao' pista.id 'tl3' %}" class="btn">Iniciar Sessão</a>
+                    {% else %}
+                        <span style="color: var(--money-green);">Concluído ✓</span>
+                    {% endif %}
+                </li>
+            {% endif %}
+
+            <!-- Classificacao Principal -->
+            <li style="padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; opacity: {% if estado.is_sprint and not estado.sprint_done %}0.5{% elif not estado.is_sprint and not estado.tl3_done %}0.5{% else %}1{% endif %};">
+                <span>Classificação Principal</span>
+                {% if estado.is_sprint and not estado.sprint_done %}
+                    <button class="btn" style="background: #555; cursor: not-allowed;" disabled>Bloqueado</button>
+                {% elif not estado.is_sprint and not estado.tl3_done %}
+                    <button class="btn" style="background: #555; cursor: not-allowed;" disabled>Bloqueado</button>
+                {% elif not estado.quali_done %}
+                    <a href="{% url 'sessao_simulacao' pista.id 'quali' %}" class="btn">Iniciar Sessão</a>
+                {% else %}
+                    <span style="color: var(--money-green);">Concluído ✓</span>
+                {% endif %}
+            </li>
+
+            <!-- Corrida -->
+            <li style="padding: 15px; display: flex; justify-content: space-between; align-items: center; opacity: {% if not estado.quali_done %}0.5{% else %}1{% endif %};">
+                <span style="font-weight: bold; font-size: 1.1em;">Grande Prêmio</span>
+                {% if not estado.quali_done %}
+                    <button class="btn" style="background: #555; cursor: not-allowed;" disabled>Bloqueado</button>
+                {% elif not estado.corrida_done %}
+                    <a href="{% url 'sessao_simulacao' pista.id 'corrida' %}" class="btn" style="background-color: #ff9800;">Iniciar Corrida</a>
+                {% else %}
+                    <span style="color: var(--money-green);">Concluído ✓</span>
+                {% endif %}
+            </li>
+        </ul>
+    </div>
+    
+    {% if estado.corrida_done %}
+    <div style="text-align: right; margin-top: 20px;">
+        <a href="{% url 'painel_geral' %}" class="btn" style="background-color: var(--money-green);">Voltar à Sede</a>
+    </div>
+    {% endif %}
+
+{% endblock %}
