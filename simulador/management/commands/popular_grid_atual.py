@@ -21,8 +21,8 @@ class Command(BaseCommand):
             "RB": ["Liam", "Arvid"],
             "Audi": ["Gabriel", "Nico"],
             "Cadillac": ["Sergio", "Valtteri"],
-            "Haas": ["Oliver", "Esteban"],
-            "Ferrari": ["Charles", "Lewis"],
+            "Haas": ["Bearman", "Esteban"],
+            "Ferrari": ["Charles", "Hamilton"],
             "Aston Martin": ["Fernando", "Lance"],
             "Williams": ["Carlos", "Alex"],
         }

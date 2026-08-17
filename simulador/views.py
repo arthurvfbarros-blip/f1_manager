@@ -73,6 +73,34 @@ def mercado_pilotos(request):
 
     return render(request, 'simulador/mercado.html', contexto)
 
+def contratar_piloto(request, piloto_id):
+    if request.method == 'POST':
+        minha_equipe = Equipe.objects.filter(controlada_pelo_jogador=True).first()
+        if not minha_equipe:
+            return redirect('novo_jogo')
+            
+        piloto = get_object_or_404(Piloto, id=piloto_id)
+        
+        # Check if the team already has 2 drivers
+        pilotos_atuais = Piloto.objects.filter(equipe_atual=minha_equipe).count()
+        if pilotos_atuais >= 2:
+            messages.error(request, "Sua equipe já possui 2 pilotos. Demita um antes de contratar.")
+            return redirect('mercado_pilotos')
+            
+        if minha_equipe.orcamento >= piloto.valor_contratacao:
+            minha_equipe.orcamento -= piloto.valor_contratacao
+            minha_equipe.save()
+            
+            # Remove from previous team if any
+            piloto.equipe_atual = minha_equipe
+            piloto.save()
+            
+            messages.success(request, f"Piloto {piloto.nome} {piloto.sobrenome} contratado com sucesso!")
+        else:
+            messages.error(request, "Orçamento insuficiente para contratar este piloto.")
+            
+    return redirect('mercado_pilotos')
+
 
 def simular_corrida(request, id_pista):
     # 1. Puxamos a pista clicada e a equipe do jogador
@@ -195,7 +223,8 @@ def processar_mercado_ia():
 
         # 2. A Troca Oportuna (Anti-Camaleão)
         # A IA só demite um piloto se o substituto disponível for pelo menos 5 pontos MELHOR em Overall
-        melhor_agente_livre = Piloto.objects.filter(equipe_atual__isnull=True).order_by('-habilidade').first()
+        agentes_livres = list(Piloto.objects.filter(equipe_atual__isnull=True))
+        melhor_agente_livre = sorted(agentes_livres, key=lambda p: p.overall, reverse=True)[0] if agentes_livres else None
         
         if melhor_agente_livre:
             for piloto in pilotos_atuais:

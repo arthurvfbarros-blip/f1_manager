@@ -24,6 +24,10 @@
             
             {% if not is_finished %}
                 <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <form id="auto-advance-form" method="POST" style="display:none;">
+                        {% csrf_token %}
+                        <input type="hidden" name="acao" value="avancar">
+                    </form>
                     <form method="POST">
                         {% csrf_token %}
                         <input type="hidden" name="acao" value="avancar">
@@ -40,6 +44,28 @@
                         <button class="btn" style="background-color: #333;">Finalizar Corrida</button>
                     </form>
                 </div>
+                <div style="margin-bottom: 20px;">
+                    <button onclick="toggleAutoPlay()" class="btn" style="background-color: #555; width: 100%;">
+                        <script>document.write(localStorage.getItem("f1_autoplay") === "true" ? "⏸ Pausar Simulação Dinâmica" : "▶ Iniciar Simulação Dinâmica")</script>
+                    </button>
+                </div>
+                <script>
+                    let autoPlay = localStorage.getItem("f1_autoplay") === "true";
+                    if (autoPlay) {
+                        setTimeout(function() {
+                            document.getElementById('auto-advance-form').submit();
+                        }, 1000); // 1 second interval
+                    }
+
+                    function toggleAutoPlay() {
+                        if (autoPlay) {
+                            localStorage.setItem("f1_autoplay", "false");
+                        } else {
+                            localStorage.setItem("f1_autoplay", "true");
+                        }
+                        location.reload();
+                    }
+                </script>
             {% else %}
                 <div style="background-color: var(--money-green); padding: 15px; border-radius: 4px; margin-bottom: 20px;">
                     <strong>Bandeira Quadriculada! A sessão terminou.</strong>

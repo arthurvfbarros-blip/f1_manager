@@ -38,7 +38,7 @@
                     {% elif not estado.sprint_done %}
                         <a href="{% url 'sessao_simulacao' pista.id 'sprint' %}" class="btn">Iniciar Sessão</a>
                     {% else %}
-                        <span style="color: var(--money-green);">Concluído ✓</span>
+                        <a href="{% url 'sessao_simulacao' pista.id 'sprint' %}" class="btn" style="background-color: var(--money-green);">Ver Resultado</a>
                     {% endif %}
                 </li>
             {% else %}
@@ -86,7 +86,7 @@
                 {% elif not estado.corrida_done %}
                     <a href="{% url 'sessao_simulacao' pista.id 'corrida' %}" class="btn" style="background-color: #ff9800;">Iniciar Corrida</a>
                 {% else %}
-                    <span style="color: var(--money-green);">Concluído ✓</span>
+                    <a href="{% url 'sessao_simulacao' pista.id 'corrida' %}" class="btn" style="background-color: var(--money-green);">Ver Resultado</a>
                 {% endif %}
             </li>
         </ul>
