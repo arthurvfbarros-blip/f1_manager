@@ -45,27 +45,9 @@
                     </form>
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <button onclick="toggleAutoPlay()" class="btn" style="background-color: #555; width: 100%;">
+                    <button id="btn-autoplay" onclick="toggleAutoPlay()" class="btn" style="background-color: #555; width: 100%;">
                         <script>document.write(localStorage.getItem("f1_autoplay") === "true" ? "⏸ Pausar Simulação Dinâmica" : "▶ Iniciar Simulação Dinâmica")</script>
                     </button>
-                </div>
-                <script>
-                    let autoPlay = localStorage.getItem("f1_autoplay") === "true";
-                    if (autoPlay) {
-                        setTimeout(function() {
-                            document.getElementById('auto-advance-form').submit();
-                        }, 1000); // 1 second interval
-                    }
-
-                    function toggleAutoPlay() {
-                        if (autoPlay) {
-                            localStorage.setItem("f1_autoplay", "false");
-                        } else {
-                            localStorage.setItem("f1_autoplay", "true");
-                        }
-                        location.reload();
-                    }
-                </script>
             {% else %}
                 <div style="background-color: var(--money-green); padding: 15px; border-radius: 4px; margin-bottom: 20px;">
                     <strong>Bandeira Quadriculada! A sessão terminou.</strong>
@@ -133,4 +115,69 @@
             {% endif %}
         </div>
     </div>
+
+<script>
+    if (!window.raceEventAttached) {
+        window.raceEventAttached = true;
+        
+        function updateRaceHTML(html) {
+            let doc = new DOMParser().parseFromString(html, "text/html");
+            let mainContent = document.querySelector('.main-content');
+            if (mainContent && doc.querySelector('.main-content')) {
+                mainContent.innerHTML = doc.querySelector('.main-content').innerHTML;
+            }
+        }
+
+        document.addEventListener("submit", function(e) {
+            if (e.target.closest('.main-content') && e.target.method && e.target.method.toUpperCase() === 'POST') {
+                e.preventDefault();
+                let formData = new FormData(e.target);
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData
+                }).then(res => res.text()).then(html => {
+                    updateRaceHTML(html);
+                });
+            }
+        });
+
+        function doAutoAdvance() {
+            if (localStorage.getItem("f1_autoplay") !== "true") return;
+            
+            let formData = new FormData();
+            formData.append('acao', 'avancar');
+            // Extract CSRF token from the first form
+            let csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if(csrfToken) formData.append('csrfmiddlewaretoken', csrfToken.value);
+
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            }).then(res => res.text())
+            .then(html => {
+                updateRaceHTML(html);
+                
+                let isFinished = html.includes('Bandeira Quadriculada');
+                if (!isFinished && localStorage.getItem("f1_autoplay") === "true") {
+                    setTimeout(doAutoAdvance, 1000);
+                }
+            });
+        }
+
+        window.toggleAutoPlay = function() {
+            if (localStorage.getItem("f1_autoplay") === "true") {
+                localStorage.setItem("f1_autoplay", "false");
+            } else {
+                localStorage.setItem("f1_autoplay", "true");
+                doAutoAdvance();
+            }
+            let btn = document.getElementById("btn-autoplay");
+            if (btn) btn.innerHTML = localStorage.getItem("f1_autoplay") === "true" ? "⏸ Pausar Simulação Dinâmica" : "▶ Iniciar Simulação Dinâmica";
+        };
+
+        if (localStorage.getItem("f1_autoplay") === "true") {
+            setTimeout(doAutoAdvance, 1000);
+        }
+    }
+</script>
 {% endblock %}

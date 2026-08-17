@@ -1,0 +1,75 @@
+{% extends 'simulador/base.html' %}
+{% load static %}
+{% load dinheiro_filters %}
+
+{% block conteudo %}
+    <h1 style="margin-top: 0; text-transform: capitalize;">Classificação do Campeonato</h1>
+    
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <!-- Tabela de Pilotos -->
+        <div class="card" style="flex: 1; min-width: 300px;">
+            <h3 style="margin-top: 0; color: var(--f1-red);">Mundial de Pilotos</h3>
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #555;">
+                        <th style="padding: 10px;">Pos</th>
+                        <th style="padding: 10px;">Piloto</th>
+                        <th style="padding: 10px;">Equipe</th>
+                        <th style="padding: 10px; text-align: right;">Pontos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for piloto in pilotos %}
+                    <tr style="border-bottom: 1px solid #333; {% if piloto.equipe_atual == equipe %}background-color: #1a2a1a;{% endif %}">
+                        <td style="padding: 10px; font-weight: bold;">{{ forloop.counter }}º</td>
+                        <td style="padding: 10px; font-weight: {% if piloto.equipe_atual == equipe %}bold{% else %}normal{% endif %};">
+                            {{ piloto.nome }} {{ piloto.sobrenome }}
+                        </td>
+                        <td style="padding: 10px; color: var(--text-muted);">
+                            {{ piloto.equipe_atual.nome|default:"Sem Equipe" }}
+                        </td>
+                        <td style="padding: 10px; font-weight: bold; font-size: 1.1em; text-align: right;">{{ piloto.pontos_campeonato }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="padding: 10px; text-align: center;">Nenhum piloto no campeonato.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tabela de Construtores -->
+        <div class="card" style="flex: 1; min-width: 300px;">
+            <h3 style="margin-top: 0; color: var(--money-green);">Mundial de Construtores</h3>
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #555;">
+                        <th style="padding: 10px;">Pos</th>
+                        <th style="padding: 10px;">Equipe</th>
+                        <th style="padding: 10px;">Motor</th>
+                        <th style="padding: 10px; text-align: right;">Pontos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for eq in equipes %}
+                    <tr style="border-bottom: 1px solid #333; {% if eq == equipe %}background-color: #1a2a1a;{% endif %}">
+                        <td style="padding: 10px; font-weight: bold;">{{ forloop.counter }}º</td>
+                        <td style="padding: 10px; font-weight: {% if eq == equipe %}bold{% else %}normal{% endif %};">
+                            {{ eq.nome }}
+                        </td>
+                        <td style="padding: 10px; color: var(--text-muted);">
+                            {{ eq.motor.nome|default:"Nenhum" }}
+                        </td>
+                        <td style="padding: 10px; font-weight: bold; font-size: 1.1em; text-align: right;">{{ eq.pontos_campeonato }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="padding: 10px; text-align: center;">Nenhuma equipe no campeonato.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

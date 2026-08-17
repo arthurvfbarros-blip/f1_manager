@@ -28,6 +28,7 @@ class Equipe(models.Model):
     orcamento = models.DecimalField(max_digits=15, decimal_places=2, default=15000000.00) # $ 15 Milhões iniciais
     categoria = models.CharField(max_length=20, choices=CATEGORIAS, default='ATUAL')
     controlada_pelo_jogador = models.BooleanField(default=False)
+    pontos_campeonato = models.IntegerField(default=0)
     motor = models.ForeignKey(FornecedorMotor, on_delete=models.SET_NULL, null=True, blank=True)
     patrocinadores = models.ManyToManyField(Patrocinador, blank=True)
 
@@ -49,6 +50,7 @@ class Piloto(models.Model):
     nivel_defesa = models.IntegerField(default=70)
     
     xp_acumulado = models.IntegerField(default=0)
+    pontos_campeonato = models.IntegerField(default=0)
     
     equipe_atual = models.ForeignKey('Equipe', on_delete=models.SET_NULL, null=True, blank=True)
 

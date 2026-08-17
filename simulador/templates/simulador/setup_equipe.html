@@ -1,4 +1,5 @@
 {% extends 'simulador/base.html' %}
+{% load dinheiro_filters %}
 
 {% block conteudo %}
     <h1 style="margin-top: 0;">Setup da Equipe: {{ equipe.nome }}</h1>
@@ -13,7 +14,7 @@
             <select name="motor_id" style="padding: 10px; border-radius: 4px; background: #333; color: white; border: 1px solid #555;">
                 <option value="">Selecione um motor...</option>
                 {% for motor in motores %}
-                    <option value="{{ motor.id }}">{{ motor.nome }} - ${{ motor.preco }} (Pot: {{ motor.potencia }}, Conf: {{ motor.confiabilidade }})</option>
+                    <option value="{{ motor.id }}">{{ motor.nome }} - {{ motor.preco|formatar_dinheiro }} (Pot: {{ motor.potencia }}, Conf: {{ motor.confiabilidade }})</option>
                 {% endfor %}
             </select>
             <button type="submit" class="btn">Comprar/Trocar Motor</button>
@@ -51,7 +52,7 @@
                 <form method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="acao" value="upgrade_aero">
-                    <button type="submit" class="btn" style="width: 100%;">Melhorar ($1.000.000)</button>
+                    <button type="submit" class="btn" style="width: 100%;">Melhorar ({{ 1000000|formatar_dinheiro }})</button>
                 </form>
             </div>
             
@@ -61,7 +62,7 @@
                 <form method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="acao" value="upgrade_chassi">
-                    <button type="submit" class="btn" style="width: 100%;">Melhorar ($1.000.000)</button>
+                    <button type="submit" class="btn" style="width: 100%;">Melhorar ({{ 1000000|formatar_dinheiro }})</button>
                 </form>
             </div>
         </div>

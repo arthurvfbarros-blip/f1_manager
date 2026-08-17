@@ -1,6 +1,7 @@
 import random
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.db.models import Q
 from .models import Equipe, Piloto, Pista, FornecedorMotor, Carro, Temporada, EtapaCalendario
 
 def painel_geral(request):
@@ -158,6 +159,7 @@ def simular_corrida(request, id_pista):
     # 4. Fim da Simulação
     if status_carro == "Na Pista":
         relatorio_corrida.append(f"BANDEIRA QUADRICULADA! {meu_piloto.nome} finaliza a corrida com sucesso!")
+        Piloto.pontos_campeonato(1)
         
         # Exemplo de premiação financeira pelo sucesso
         pagamento = 0
@@ -448,11 +450,16 @@ def sessao_simulacao(request, id_pista, tipo_sessao):
                     rp['tempo_total'] += lap_time
                     rp['desgaste_pneu'] += pista.desgaste_pneus * 1.5
                     
-                    if not rp['is_player'] and rp['desgaste_pneu'] > 85.0:
+                    if not rp['is_player'] and rp['desgaste_pneu'] > 85.0 and rp['desgaste_pneu'] < 100.0:
                         rp['desgaste_pneu'] = 0.0
                         rp['tempo_total'] += 22.0
                         rp['pitstops'] += 1
                         race_state['log'].insert(0, f"Volta {race_state['volta_atual']}: {rp['nome']} fez Pit Stop.")
+                        
+                    if rp['desgaste_pneu'] >= 100.0:
+                        rp['status'] = "ABANDONO"
+                        race_state['log'].insert(0, f"Volta {race_state['volta_atual']}: PNEU ESTOUROU PARA {rp['nome']}! Abandono.")
+                        continue
                         
                     chance_quebra = random.randint(1, 1500)
                     if chance_quebra <= 2:
@@ -464,6 +471,24 @@ def sessao_simulacao(request, id_pista, tipo_sessao):
             
             # Checar se finalizou
             if race_state['volta_atual'] >= race_state['total_voltas']:
+                if not estado.get(f'{tipo_sessao}_points_given', False):
+                    pontos_corrida = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+                    pontos_sprint = [8, 7, 6, 5, 4, 3, 2, 1]
+                    
+                    tabela_pontos = pontos_corrida if tipo_sessao == 'corrida' else pontos_sprint
+                    
+                    for i, rp in enumerate(race_state['pilotos']):
+                        if i < len(tabela_pontos) and rp['status'] == 'Na Pista':
+                            piloto_db = Piloto.objects.filter(id=rp['id']).first()
+                            if piloto_db:
+                                piloto_db.pontos_campeonato += tabela_pontos[i]
+                                piloto_db.save()
+                                if piloto_db.equipe_atual:
+                                    piloto_db.equipe_atual.pontos_campeonato += tabela_pontos[i]
+                                    piloto_db.equipe_atual.save()
+                    
+                    estado[f'{tipo_sessao}_points_given'] = True
+                
                 if tipo_sessao == 'corrida':
                     estado['corrida_done'] = True
                     temporada = Temporada.objects.first()
@@ -497,3 +522,19 @@ def sessao_simulacao(request, id_pista, tipo_sessao):
         'tipo_sessao': tipo_sessao
     }
     return render(request, 'simulador/corrida_interativa.html', contexto)
+
+def campeonato(request):
+    minha_equipe = Equipe.objects.filter(controlada_pelo_jogador=True).first()
+    if not minha_equipe:
+        return redirect('novo_jogo')
+        
+    equipes = Equipe.objects.filter(Q(categoria='ATUAL') | Q(controlada_pelo_jogador=True)).order_by('-pontos_campeonato')
+    pilotos = Piloto.objects.filter(equipe_atual__in=equipes).order_by('-pontos_campeonato')
+    
+    contexto = {
+        'equipe': minha_equipe,
+        'saldo': minha_equipe.orcamento,
+        'pilotos': pilotos,
+        'equipes': equipes,
+    }
+    return render(request, 'simulador/campeonato.html', contexto)

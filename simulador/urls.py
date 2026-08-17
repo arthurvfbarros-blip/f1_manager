@@ -13,4 +13,5 @@ urlpatterns = [
     path('setup-equipe/', views.setup_equipe, name='setup_equipe'),
     path('fim-de-semana/<int:id_pista>/', views.fim_de_semana_hub, name='fim_de_semana_hub'),
     path('sessao/<int:id_pista>/<str:tipo_sessao>/', views.sessao_simulacao, name='sessao_simulacao'),
+    path('campeonato/', views.campeonato, name='campeonato'),
 ]

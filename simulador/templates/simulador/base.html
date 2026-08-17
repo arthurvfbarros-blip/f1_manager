@@ -1,4 +1,5 @@
-{%load static%}
+{% load static %}
+{% load dinheiro_filters %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -96,7 +97,7 @@
         <div class="card" style="padding: 15px; margin-bottom: 30px;">
             <small style="color: var(--text-muted);">Saldo da Equipe</small>
             <div style="font-size: 1.4rem; color: var(--money-green); font-weight: bold;">
-                $ {{ saldo|default:"0,00" }}
+                {{ saldo|default:0|formatar_dinheiro }}
             </div>
         </div>
 
@@ -105,6 +106,7 @@
             <li><a href="{% url 'setup_equipe' %}">⚙️ Setup da Equipe</a></li>
             <li><a href="{% url 'garagem' %}">🔧 Garagem e P&D</a></li>
             <li><a href="{% url 'mercado_pilotos' %}">🤝 Mercado de Pilotos</a></li>
+            <li><a href="{% url 'campeonato' %}">🏆 Campeonato</a></li>
         </ul>
     </nav>
 

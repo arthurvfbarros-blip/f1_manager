@@ -15,10 +15,10 @@ class Command(BaseCommand):
 
         contratos_iniciais = {
             "Red Bull": ["Max", "Isack"],
-            "Mercedes": ["George", "Kimi"],
+            "Mercedes": ["Russel", "Kimi"],
             "Mclaren": ["Lando", "Oscar"],
             "Alpine": ["Pierre", "Franco"],
-            "RB": ["Liam", "Arvid"],
+            "RB": ["Lawson", "Arvid"],
             "Audi": ["Gabriel", "Nico"],
             "Cadillac": ["Sergio", "Valtteri"],
             "Haas": ["Bearman", "Esteban"],

@@ -1,11 +1,12 @@
 {% extends 'simulador/base.html' %}
+{% load dinheiro_filters %}
 
 {% block conteudo %}
     <h1 style="margin-top: 0;">Garagem & Centro de Treinamento</h1>
     <p style="color: var(--text-muted);">Acompanhe o desenvolvimento do chassi e treine seus pilotos.</p>
 
     <div class="card" style="margin-top: 30px;">
-        <h3 style="margin-top: 0; color: var(--f1-red);">Treinamento de Pilotos ($500.000 por Ponto)</h3>
+        <h3 style="margin-top: 0; color: var(--f1-red);">Treinamento de Pilotos ({{ 500000|formatar_dinheiro }} por Ponto)</h3>
         {% if meus_pilotos %}
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             {% for piloto in meus_pilotos %}

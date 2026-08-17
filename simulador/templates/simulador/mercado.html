@@ -1,5 +1,6 @@
 {% extends 'simulador/base.html' %}
-{%load static%}
+{% load static %}
+{% load dinheiro_filters %}
 
 {% block conteudo %}
     <h1 style="margin-top: 0;">Mercado de Pilotos</h1>
@@ -47,9 +48,9 @@
                     <p style="margin: 2px 0;">Ataque: <strong>{{ piloto.nivel_ataque }}</strong> | Defesa: <strong>{{ piloto.nivel_defesa }}</strong></p>
                 </div>
                 
-                <p style="margin: 5px 0;">Salário Base: $ {{ piloto.salario }}</p>
+                <p style="margin: 5px 0;">Salário Base: {{ piloto.salario|formatar_dinheiro }}</p>
                 <p style="margin: 5px 0; color: var(--money-green); font-size: 1.1rem; font-weight: bold;">
-                    Passe: $ {{ piloto.valor_contratacao }}
+                    Passe: {{ piloto.valor_contratacao|formatar_dinheiro }}
                 </p>
             </div>
             
