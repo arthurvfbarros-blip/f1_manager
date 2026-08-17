@@ -218,6 +218,13 @@ def processar_mercado_ia():
     for equipe in equipes_ia:
         pilotos_atuais = Piloto.objects.filter(equipe_atual=equipe)
         
+        if not equipe.motor:
+            melhor_motor_acessivel = FornecedorMotor.objects.filter(preco__lte=equipe.orcamento).order_by('-potencia', '-confiabilidade').first()
+            if melhor_motor_acessivel:
+                equipe.orcamento -= melhor_motor_acessivel.preco
+                equipe.motor = melhor_motor_acessivel
+                equipe.save()
+
         # 1. A equipe só vai ao mercado buscar titular se estiver com vaga sobrando
         if pilotos_atuais.count() < 2:
             # ... lógica de contratar o melhor disponível

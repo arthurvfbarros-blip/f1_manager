@@ -17,6 +17,10 @@
             --money-green: #4caf50;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+        
         body {
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -108,14 +112,15 @@
             <li><a href="{% url 'mercado_pilotos' %}">🤝 Mercado de Pilotos</a></li>
             <li><a href="{% url 'campeonato' %}">🏆 Campeonato</a></li>
         </ul>
+        
+        <div style="margin-top: auto; display: flex; flex-direction: column; align-items: center; opacity: 0.8;">
+            <img src="{% static 'simulador/img/formula-1-logo.png' %}" alt="Logo F1 Manager" width="150">
+            <img src="{% static 'simulador/img/bandeira_brasil.jpg' %}" alt="Bandeira do Brasil" width="30" style="margin-top: 10px; border-radius: 2px;">
+        </div>
     </nav>
 
     <!-- Onde as outras telas serão renderizadas -->
     <main class="main-content" style="position: relative;">
-        <div style="position: absolute; top: 40px; right: 40px; display: flex; flex-direction: column; align-items: flex-end; z-index: 1000;">
-            <img src="{% static 'simulador/img/formula-1-logo.png' %}" alt="Logo F1 Manager" width="200">
-            <img src="{% static 'simulador/img/bandeira_brasil.jpg' %}" alt="Bandeira do Brasil" width="30" style="margin-top: -5px; border-radius: 2px;">
-        </div>
         <!-- ÁREA PARA MENSAGENS DE ERRO/SUCESSO (COMPRA DE PILOTOS) -->
         {% if messages %}
             {% for message in messages %}
